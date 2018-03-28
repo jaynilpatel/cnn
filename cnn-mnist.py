@@ -9,6 +9,8 @@ batch_size = 100
 x = tf.placeholder(tf.float32, [None, 784])
 y = tf.placeholder(tf.float32, [None, n_classes])
 
+keep_rate = 0.8
+keep_prob = tf.placeholder(tf.float32)
 
 def conv2d(x,W):
     return tf.nn.conv2d(x, W, strides=[1,1,1,1], padding='SAME')
@@ -30,7 +32,7 @@ def convolutional_network_model(x):
     
     x = tf.reshape(x, shape=[-1, 28, 28, 1])
 
-    con1 = tf.nn.relu(conv2d(x, weights['W_conv1'] + biases['b_conv1']))
+    con1 = tf.nn.relu(conv2d(x, weights['W_conv1'] + biases['b_conv1'])) 
     con1 = maxpool2d(con1)
 
     con2 = tf.nn.relu(conv2d(con1, weights['W_conv2'] + biases['b_conv2']))
@@ -38,8 +40,10 @@ def convolutional_network_model(x):
 
     fc = tf.reshape(con2, [-1, 7*7*64])
     fc = tf.nn.relu(tf.matmul(fc, weights['W_fc']+biases['b_fc']))
+    fc = tf.nn.dropout(fc, keep_rate)
 
     output = tf.matmul(fc, weights['out'])+biases['out']
+
 
 
     return output
@@ -61,7 +65,7 @@ def train_neural_network(x):
                 _, c = sess.run([optimizer, cost], feed_dict={x: epoch_x, y: epoch_y})
                 epoch_loss += c
 
-            print('Epoch', epoch, 'completed out of',hm_epochs,'loss:',epoch_loss)
+            print('Epoch', epoch+1, 'completed out of',hm_epochs,'loss:',epoch_loss)
 
         correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
 
